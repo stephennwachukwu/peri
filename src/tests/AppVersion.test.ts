@@ -2,10 +2,12 @@ import * as mockedIonicCore from "@ionic/core";
 import {
   GithubReleaseAsset,
   GithubReleaseInfo,
-  appVersion,
   downloadLatestRelease,
+  homepageURL,
   isNewVersionAvailable,
+  openGitHubPage,
 } from "../data/AppVersion";
+import { configuration } from "../data/AppConfiguration";
 
 describe("Get information about latest release", () => {
   test("There are no new version", async () => {
@@ -19,7 +21,7 @@ describe("Get information about latest release", () => {
     globalThis.fetch = jest.fn().mockResolvedValue({
       json: jest.fn().mockResolvedValue({
         html_url: "https://some-html-url.com",
-        tag_name: appVersion,
+        tag_name: configuration.app.version,
         draft: false,
         assets: [
           {
@@ -109,7 +111,7 @@ describe("Get information about latest release", () => {
     globalThis.fetch = jest.fn().mockResolvedValue({
       json: jest.fn().mockResolvedValue({
         html_url: "https://some-html-url.com",
-        tag_name: appVersion,
+        tag_name: configuration.app.version,
         draft: false,
         assets: [] satisfies GithubReleaseAsset[],
       } satisfies GithubReleaseInfo),
@@ -149,6 +151,31 @@ test("Download latest release", async () => {
   expect(mockedWindowOpen).toHaveBeenNthCalledWith(
     1,
     "https://some-html-url.com",
+    "_system",
+    "location=yes",
+  );
+});
+
+test("Open Github page on desktop", () => {
+  jest.spyOn(mockedIonicCore, "isPlatform").mockReturnValueOnce(true);
+  // @ts-expect-error Mock
+  const mockedWindowOpen = jest.spyOn(window, "open").mockReturnValue({
+    focus: jest.fn().mockReturnValue(0),
+  });
+
+  openGitHubPage();
+  expect(mockedWindowOpen).toHaveBeenNthCalledWith(1, homepageURL, "_blank");
+});
+
+test("Open Github page on android", () => {
+  jest.spyOn(mockedIonicCore, "isPlatform").mockReturnValueOnce(false);
+  // @ts-expect-error Mock
+  const mockedWindowOpen = jest.spyOn(window, "open").mockReturnValue({});
+
+  openGitHubPage();
+  expect(mockedWindowOpen).toHaveBeenNthCalledWith(
+    1,
+    homepageURL,
     "_system",
     "location=yes",
   );

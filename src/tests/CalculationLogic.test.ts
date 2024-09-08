@@ -20,13 +20,13 @@ import {
   getPhase,
   getNewCyclesHistory,
   getActiveDates,
-  getPeriodDays,
-  getPastFuturePeriodDays,
+  getPeriodDates,
+  getPeriodDatesWithNewElement,
   getLastStartDate,
   getLengthOfLastPeriod,
-  getForecastPeriodDays,
-  getOvulationDays,
-  getLastPeriodDays,
+  getForecastPeriodDates,
+  getOvulationDates,
+  getPeriodDatesOfLastCycle,
 } from "../state/CalculationLogics";
 
 describe("getOvulationStatus", () => {
@@ -49,6 +49,8 @@ describe("getOvulationStatus", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
+
     expect(getOvulationStatus(cycles)).toEqual(
       `${i18n.t("in")} 9 ${i18n.t("Days", {
         postProcess: "interval",
@@ -72,6 +74,8 @@ describe("getOvulationStatus", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
+
     expect(getOvulationStatus(cycles)).toEqual("tomorrow");
   });
 
@@ -90,6 +94,8 @@ describe("getOvulationStatus", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
+
     expect(getOvulationStatus(cycles)).toEqual("today");
   });
 
@@ -108,6 +114,8 @@ describe("getOvulationStatus", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
+
     expect(getOvulationStatus(cycles)).toEqual("possible");
   });
 
@@ -126,6 +134,8 @@ describe("getOvulationStatus", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
+
     expect(getOvulationStatus(cycles)).toEqual("finished");
   });
 });
@@ -150,6 +160,8 @@ describe("getPregnancyChance", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
+
     expect(getPregnancyChance(cycles)).toEqual("High");
   });
 
@@ -167,6 +179,8 @@ describe("getPregnancyChance", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
+
     expect(getPregnancyChance(cycles)).toEqual("Low");
   });
 });
@@ -192,6 +206,7 @@ describe("getDayOfCycle", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getDayOfCycle(cycles)).toEqual(14);
   });
@@ -311,6 +326,7 @@ describe("getDaysBeforePeriod", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getDaysBeforePeriod(cycles)).toEqual({
       title: i18n.t("Period in"),
@@ -336,6 +352,7 @@ describe("getDaysBeforePeriod", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getDaysBeforePeriod(cycles)).toEqual({
       title: i18n.t("Period in"),
@@ -362,6 +379,7 @@ describe("getDaysBeforePeriod", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getDaysBeforePeriod(cycles)).toEqual({
       title: i18n.t("Period"),
@@ -404,6 +422,7 @@ describe("getDaysBeforePeriod", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getDaysBeforePeriod(cycles)).toEqual({
       title: i18n.t("Delay"),
@@ -429,6 +448,7 @@ describe("getDaysBeforePeriod", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getDaysBeforePeriod(cycles)).toEqual({
       title: i18n.t("Delay"),
@@ -473,6 +493,7 @@ describe("getDaysBeforePeriod", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getDaysBeforePeriod(cycles)).toEqual({
       title: i18n.t("Period"),
@@ -558,6 +579,7 @@ describe("getPhase", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getPhase(cycles)).toEqual(phases.menstrual);
   });
@@ -577,6 +599,7 @@ describe("getPhase", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getPhase(cycles)).toEqual(phases.follicular);
   });
@@ -596,6 +619,7 @@ describe("getPhase", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getPhase(cycles)).toEqual(phases.ovulation);
   });
@@ -615,6 +639,7 @@ describe("getPhase", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getPhase(cycles)).toEqual(phases.luteal);
   });
@@ -688,7 +713,7 @@ describe("getPeriodDays", () => {
   test("cycles array is empty", () => {
     // @ts-expect-error mocked `t` method
     jest.spyOn(i18n, "t").mockImplementation((key) => key);
-    expect(getPeriodDays([])).toEqual([]);
+    expect(getPeriodDates([])).toEqual([]);
   });
 
   test("cycles array has a few items", () => {
@@ -732,7 +757,7 @@ describe("getPeriodDays", () => {
       "2023-06-13",
     ];
 
-    expect(getPeriodDays(cycles)).toEqual(periodDays);
+    expect(getPeriodDates(cycles)).toEqual(periodDays);
   });
 });
 
@@ -740,7 +765,7 @@ describe("getLastPeriodDays", () => {
   test("cycles array is empty", () => {
     // @ts-expect-error mocked `t` method
     jest.spyOn(i18n, "t").mockImplementation((key) => key);
-    expect(getLastPeriodDays([])).toEqual([]);
+    expect(getPeriodDatesOfLastCycle([])).toEqual([]);
   });
 
   test("cycles array has a few items", () => {
@@ -774,7 +799,7 @@ describe("getLastPeriodDays", () => {
       "2023-08-10",
     ];
 
-    expect(getLastPeriodDays(cycles)).toEqual(lastPeriodDays);
+    expect(getPeriodDatesOfLastCycle(cycles)).toEqual(lastPeriodDays);
   });
 });
 
@@ -801,6 +826,7 @@ describe("getActiveDates", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     const dateCheck = addDays(startOfDay(new Date(cycles[0].startDate)), 1);
     expect(getActiveDates(dateCheck, cycles)).toEqual(true);
@@ -821,6 +847,7 @@ describe("getActiveDates", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     const dateCheck = addDays(startOfDay(new Date(cycles[0].startDate)), 7);
     expect(getActiveDates(dateCheck, cycles)).toEqual(false);
@@ -841,6 +868,7 @@ describe("getActiveDates", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     const dateCheck = addDays(startOfDay(new Date(cycles[0].startDate)), 7);
     expect(getActiveDates(dateCheck, cycles)).toEqual(true);
@@ -861,6 +889,7 @@ describe("getActiveDates", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     const dateCheck = addDays(startOfDay(new Date(cycles[0].startDate)), 15);
     expect(getActiveDates(dateCheck, cycles)).toEqual(false);
@@ -881,6 +910,7 @@ describe("getActiveDates", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     const dateCheck = addDays(startOfDay(new Date(cycles[0].startDate)), 10);
     expect(getActiveDates(dateCheck, cycles)).toEqual(true);
@@ -901,6 +931,7 @@ describe("getActiveDates", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     const dateCheck = addDays(startOfDay(new Date(cycles[0].startDate)), 40);
     expect(getActiveDates(dateCheck, cycles)).toEqual(false);
@@ -918,7 +949,7 @@ describe("getPastFuturePeriodDays", () => {
       const periodDay = addDays(nowDate, day);
       periodDates.push(periodDay.toString());
     }
-    expect(getPastFuturePeriodDays([])).toEqual(periodDates);
+    expect(getPeriodDatesWithNewElement([])).toEqual(periodDates);
   });
 
   test("cycles array has a few items", () => {
@@ -936,8 +967,9 @@ describe("getPastFuturePeriodDays", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
-    const periodDates = getPeriodDays(cycles).map((isoDateString) => {
+    const periodDates = getPeriodDates(cycles).map((isoDateString) => {
       return parseISO(isoDateString).toString();
     });
     const nowDate = startOfToday();
@@ -946,7 +978,7 @@ describe("getPastFuturePeriodDays", () => {
       periodDates.push(periodDay.toString());
     }
 
-    expect(getPastFuturePeriodDays(cycles)).toEqual(periodDates);
+    expect(getPeriodDatesWithNewElement(cycles)).toEqual(periodDates);
   });
 
   test("delay a few days", () => {
@@ -964,8 +996,9 @@ describe("getPastFuturePeriodDays", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
-    const periodDates = getPeriodDays(cycles).map((isoDateString) => {
+    const periodDates = getPeriodDates(cycles).map((isoDateString) => {
       return parseISO(isoDateString).toString();
     });
     const nowDate = startOfToday();
@@ -975,7 +1008,7 @@ describe("getPastFuturePeriodDays", () => {
       periodDates.push(periodDay.toString());
     }
 
-    expect(getPastFuturePeriodDays(cycles)).toEqual(periodDates);
+    expect(getPeriodDatesWithNewElement(cycles)).toEqual(periodDates);
   });
 });
 
@@ -999,6 +1032,7 @@ describe("getLastStartDate", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getLastStartDate(cycles)).toEqual(cycles[0].startDate);
   });
@@ -1024,16 +1058,17 @@ describe("getLengthOfLastPeriod", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     expect(getLengthOfLastPeriod(cycles)).toEqual(cycles[0].periodLength);
   });
 });
 
-describe("getForecastPeriodDays", () => {
+describe("getForecastPeriodDates", () => {
   test("cycles array is empty", () => {
     // @ts-expect-error mocked `t` method
     jest.spyOn(i18n, "t").mockImplementation((key) => key);
-    expect(getForecastPeriodDays([])).toEqual([]);
+    expect(getForecastPeriodDates([])).toEqual([]);
   });
 
   test("cycles array has a few items", () => {
@@ -1051,6 +1086,7 @@ describe("getForecastPeriodDays", () => {
         startDate: date.toString(),
       });
     }
+    cycles[0].cycleLength = 0;
 
     const forecastDays = [];
     let nextCycleStart = addDays(startOfDay(new Date(cycles[0].startDate)), 28);
@@ -1066,15 +1102,15 @@ describe("getForecastPeriodDays", () => {
       }
     }
 
-    expect(getForecastPeriodDays(cycles)).toEqual(forecastDays);
+    expect(getForecastPeriodDates(cycles)).toEqual(forecastDays);
   });
 });
 
-describe("getOvulationDays", () => {
+describe("getOvulationDates", () => {
   test("cycles array is empty", () => {
     // @ts-expect-error mocked `t` method
     jest.spyOn(i18n, "t").mockImplementation((key) => key);
-    expect(getOvulationDays([])).toEqual([]);
+    expect(getOvulationDates([])).toEqual([]);
   });
 
   test("cycles array has 1 item", () => {
@@ -1091,7 +1127,7 @@ describe("getOvulationDays", () => {
       startDate: date.toString(),
     });
 
-    expect(getOvulationDays(cycles)).toEqual([]);
+    expect(getOvulationDates(cycles)).toEqual([]);
   });
 
   test("cycles array has a 6 items", () => {
@@ -1142,6 +1178,6 @@ describe("getOvulationDays", () => {
       }
     }
 
-    expect(getOvulationDays(cycles)).toEqual(ovulationDays);
+    expect(getOvulationDates(cycles)).toEqual(ovulationDays);
   });
 });

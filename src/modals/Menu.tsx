@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import {
+  IonChip,
   IonIcon,
   IonItem,
   IonLabel,
@@ -15,15 +16,17 @@ import {
   cloudDownloadOutline,
   cloudUploadOutline,
   globeOutline,
-  colorFilterOutline,
+  colorFillOutline,
+  logoGithub,
 } from "ionicons/icons";
 import { useTranslation } from "react-i18next";
 import { storage } from "../data/Storage";
+import { configuration } from "../data/AppConfiguration";
 import { exportConfig, importConfig } from "../data/Config";
 import {
-  appVersion,
   downloadLatestRelease,
   isNewVersionAvailable,
+  openGitHubPage,
 } from "../data/AppVersion";
 import { CyclesContext, ThemeContext } from "../state/Context";
 import {
@@ -92,7 +95,7 @@ const ThemeSwitcher = () => {
   const { theme, updateTheme } = useContext(ThemeContext);
 
   const themesList = [];
-  for (const item of ["light", "dark (beta)"]) {
+  for (const item of ["light", "dark"]) {
     themesList.push(
       <IonSelectOption
         key={item}
@@ -107,15 +110,13 @@ const ThemeSwitcher = () => {
     <IonItem>
       <IonIcon
         slot="start"
-        icon={colorFilterOutline}
+        icon={colorFillOutline}
         color={`text-${theme}`}
       />
 
       <IonSelect
         className={theme}
-        value={
-          theme === "dark" ? "dark (beta)" : theme === "basic" ? "light" : theme
-        }
+        value={theme === "basic" ? "light" : theme}
         interface="popover"
         justify="space-between"
         interfaceOptions={{
@@ -137,16 +138,22 @@ const Importer = () => {
   const [confirmAlert] = useIonAlert();
 
   const updateCycles = useContext(CyclesContext).updateCycles;
+  const updateTheme = useContext(ThemeContext).updateTheme;
   const theme = useContext(ThemeContext).theme;
 
   const onImportClick = async () => {
     console.log("Import config");
     const config = await importConfig();
     await storage.set.cycles(config.cycles);
+    await storage.set.theme(config.theme);
+    await storage.set.language(config.language);
     updateCycles(config.cycles);
+    updateTheme(config.theme);
+    changeDateTimeLocale(config.language);
+    await changeTranslation(config.language);
     await confirmAlert({
       header: t("Configuration has been imported"),
-      cssClass: "header-color",
+      cssClass: `${theme}`,
       buttons: [
         {
           text: "OK",
@@ -211,6 +218,10 @@ export const Menu = (props: MenuProps) => {
   const [needUpdate, setNeedUpdate] = useState(false);
 
   useEffect(() => {
+    if (!configuration.features.useCustomVersionUpdate) {
+      return;
+    }
+
     isNewVersionAvailable()
       .then((newVersionAvailable) => {
         if (!newVersionAvailable) {
@@ -239,7 +250,7 @@ export const Menu = (props: MenuProps) => {
         </IonItem>
         <Importer />
         <Exporter />
-        {needUpdate && (
+        {configuration.features.useCustomVersionUpdate && needUpdate && (
           <IonItem
             button
             onClick={() => {
@@ -259,24 +270,44 @@ export const Menu = (props: MenuProps) => {
           </IonItem>
         )}
       </IonList>
-      <IonItem
-        color="none"
-        lines="none"
+      <IonList
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
       >
-        <IonLabel
-          style={{ fontSize: "13px" }}
-          color="medium"
+        <IonChip
+          outline
+          color={`text-${theme}`}
+          onClick={() => openGitHubPage()}
         >
-          Peri - The Period Tracker App
-        </IonLabel>
-        <IonLabel
-          style={{ fontSize: "13px" }}
-          color="medium"
-          slot="end"
+          <IonIcon
+            icon={logoGithub}
+            color={`text-${theme}`}
+          />
+          <IonLabel>{t("We are on GitHub")}</IonLabel>
+        </IonChip>
+        <IonItem
+          color="none"
+          lines="none"
+          style={{ width: "100%" }}
         >
-          {appVersion}
-        </IonLabel>
-      </IonItem>
+          <IonLabel
+            style={{ fontSize: "13px" }}
+            color="medium"
+          >
+            Peri - The Period Tracker App
+          </IonLabel>
+          <IonLabel
+            style={{ fontSize: "13px" }}
+            color="medium"
+            slot="end"
+          >
+            {configuration.app.version}
+          </IonLabel>
+        </IonItem>
+      </IonList>
     </IonMenu>
   );
 };

@@ -29,6 +29,7 @@ import {
 import { CyclesContext, ThemeContext } from "../state/Context";
 
 import { storage } from "../data/Storage";
+import { configuration } from "../data/AppConfiguration";
 
 import Welcome from "../modals/WelcomeModal";
 import InfoModal from "../modals/InfoModal";
@@ -37,13 +38,13 @@ import {
   getPregnancyChance,
   getDaysBeforePeriod,
   getNewCyclesHistory,
-  getPeriodDays,
+  getPeriodDates,
   getActiveDates,
-  getPastFuturePeriodDays,
+  getPeriodDatesWithNewElement,
   isPeriodToday,
-  getForecastPeriodDays,
-  getOvulationDays,
-  getLastPeriodDays,
+  getForecastPeriodDates,
+  getOvulationDates,
+  getPeriodDatesOfLastCycle,
 } from "../state/CalculationLogics";
 import { getCurrentTranslation } from "../utils/translation";
 import { format } from "../utils/datetime";
@@ -62,24 +63,37 @@ const InfoButton = (props: InfoButtonProps) => {
 
   const pregnancyChance = getPregnancyChance(cycles);
   if (cycles.length === 0) {
-    return <p style={{ marginBottom: "20px", height: "20px" }}></p>;
+    return <p style={{ marginBottom: "20px", height: "22px" }}></p>;
   }
   return (
-    <IonLabel onClick={() => props.setIsInfoModal(true)}>
+    <IonLabel
+      onClick={() => props.setIsInfoModal(true)}
+      style={{
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
       <p
         style={{
           fontSize: "14px",
           color: "var(--ion-color-medium)",
           marginBottom: "20px",
+          display: "flex",
+          alignItems: "center",
         }}
       >
-        <span style={{ color: `var(--ion-color-text-${theme})` }}>
+        <span
+          style={{
+            color: `var(--ion-color-text-${theme})`,
+            marginRight: "3px",
+          }}
+        >
           {pregnancyChance}
-        </span>{" "}
+        </span>
         - {t("chance of getting pregnant")}
         <IonIcon
-          color="medium"
-          slot="end"
+          color={`dark-${theme}`}
+          style={{ fontSize: "22px", marginLeft: "5px" }}
           icon={chevronForwardOutline}
         />
       </p>
@@ -96,11 +110,11 @@ const ViewCalendar = (props: SelectCalendarProps) => {
   const { cycles } = useContext(CyclesContext);
   const theme = useContext(ThemeContext).theme;
 
-  const periodDays = getPeriodDays(cycles);
-  const forecastPeriodDays = getForecastPeriodDays(cycles);
-  const ovulationDays = getOvulationDays(cycles);
+  const periodDates = getPeriodDates(cycles);
+  const forecastPeriodDates = getForecastPeriodDates(cycles);
+  const ovulationDates = getOvulationDates(cycles);
 
-  const firstPeriodDay = periodDays
+  const firstPeriodDay = periodDates
     .sort((left, right) => {
       const leftDate = new Date(left);
       const rightDate = new Date(right);
@@ -114,7 +128,7 @@ const ViewCalendar = (props: SelectCalendarProps) => {
 
   const minDate = formatISO(startOfMonth(firstPeriodDayDate));
 
-  const lastForecastPeriodDay = forecastPeriodDays
+  const lastForecastPeriodDay = forecastPeriodDates
     .sort((left, right) => {
       const leftDate = new Date(left);
       const rightDate = new Date(right);
@@ -133,7 +147,7 @@ const ViewCalendar = (props: SelectCalendarProps) => {
   return (
     <IonDatetime
       className={
-        ovulationDays.includes(format(startOfToday(), "yyyy-MM-dd"))
+        ovulationDates.includes(format(startOfToday(), "yyyy-MM-dd"))
           ? `view-calendar-today-ovulation-${theme}`
           : `view-calendar-${theme}`
       }
@@ -147,7 +161,7 @@ const ViewCalendar = (props: SelectCalendarProps) => {
         if (cycles.length === 0) {
           return undefined;
         }
-        if (forecastPeriodDays.includes(isoDateString)) {
+        if (forecastPeriodDates.includes(isoDateString)) {
           if (theme === "dark") {
             return {
               textColor: `#ffffff`,
@@ -158,7 +172,7 @@ const ViewCalendar = (props: SelectCalendarProps) => {
             textColor: `var(--ion-color-dark-${theme})`,
             backgroundColor: `rgba(var(--ion-color-light-${theme}-rgb), 0.3)`,
           };
-        } else if (periodDays.includes(isoDateString)) {
+        } else if (periodDates.includes(isoDateString)) {
           return theme === "dark"
             ? {
                 textColor: `#ffffff`,
@@ -168,7 +182,7 @@ const ViewCalendar = (props: SelectCalendarProps) => {
                 textColor: `var(--ion-color-dark-${theme})`,
                 backgroundColor: `rgba(var(--ion-color-light-${theme}-rgb), 0.8)`,
               };
-        } else if (ovulationDays.includes(isoDateString)) {
+        } else if (ovulationDates.includes(isoDateString)) {
           return {
             textColor: `var(--ion-color-ovulation-${theme})`,
             backgroundColor: `var(--ion-color-calendar-${theme})`,
@@ -200,8 +214,8 @@ const EditCalendar = (props: SelectCalendarProps) => {
   const { cycles, updateCycles } = useContext(CyclesContext);
   const theme = useContext(ThemeContext).theme;
 
-  const periodDays = getPeriodDays(cycles);
-  const lastPeriodDays = getLastPeriodDays(cycles);
+  const periodDays = getPeriodDates(cycles);
+  const lastPeriodDays = getPeriodDatesOfLastCycle(cycles);
 
   const sortedPeriodDays = periodDays.sort((left, right) => {
     const leftDate = new Date(left);
@@ -367,7 +381,7 @@ const TabHome = () => {
     <IonPage
       style={{ backgroundColor: `var(--ion-color-background-${theme})` }}
     >
-      {false && <DemoAlert />}
+      {configuration.features.demoMode && <DemoAlert />}
       <div
         id="wide-screen"
         className={theme}
@@ -428,7 +442,7 @@ const TabHome = () => {
                 disabled={isPeriodToday(cycles)}
                 onClick={() => {
                   const newCycles = getNewCyclesHistory(
-                    getPastFuturePeriodDays(cycles),
+                    getPeriodDatesWithNewElement(cycles),
                   );
                   updateCycles(newCycles);
                 }}
